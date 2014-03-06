@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Configuration;
 
 namespace Filmuthyrning.Model.DAL
+{
     public abstract class DALBase
     {
         //anslutning till databasen
