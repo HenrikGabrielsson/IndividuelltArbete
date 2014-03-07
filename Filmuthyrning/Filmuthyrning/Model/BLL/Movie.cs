@@ -7,12 +7,12 @@ namespace Filmuthyrning.Model.BLL
 {
     public class Movie
     {
-        public int FilmID{get;set;}
-        public string Titel{get;set;}
-        public int År { get; set; }
+        public int MovieID{get;set;}
+        public string Title{get;set;}
+        public int Year { get; set; }
         public string Genre { get; set; }
-        public int PrisgruppID { get; set; }
-        public int Hyrtid { get; set; }
-        public int Antal { get; set; }
+        public int PriceGroupID { get; set; }
+        public int RentalPeriod { get; set; }
+        public int Quantity { get; set; }
     }
 }

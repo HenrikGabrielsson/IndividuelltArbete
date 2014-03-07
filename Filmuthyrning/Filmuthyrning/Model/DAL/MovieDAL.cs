@@ -12,7 +12,7 @@ namespace Filmuthyrning.Model.DAL
     public class MovieDAL: DALBase
     {
         //Hämtar alla filmer från tabellen.
-        public IEnumerable<Movie> getFilmer()
+        public IEnumerable<Movie> getMovies()
         {
             try
             {
@@ -23,49 +23,52 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getFilmer = new SqlCommand("AppSchema.getFilmer", conn);
-                    getFilmer.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getMovies = new SqlCommand("appSchema.getFilmer", conn);
+                    getMovies.CommandType = CommandType.StoredProcedure;
 
                     using (SqlDataReader reader = new SqlDataReader())
                     {
 
                         //hämta alla index i tabeller
-                        int filmIDIndex = reader.GetOrdinal("FilmID");
-                        int titelIndex = reader.GetOrdinal("Titel");
-                        int årIndex = reader.GetOrdinal("År");
+                        int movieIDIndex = reader.GetOrdinal("FilmID");
+                        int titleIndex = reader.GetOrdinal("Titel");
+                        int yearIndex = reader.GetOrdinal("År");
                         int genreIndex = reader.GetOrdinal("Genre");
-                        int prisgruppIDIndex = reader.GetOrdinal("Prisgrupp");
-                        int hyrtidIndex = reader.GetOrdinal("Hyrtid");
-                        int antalIndex = reader.GetOrdinal("Antal");
+                        int priceGroupIDIndex = reader.GetOrdinal("Prisgrupp");
+                        int rentalPeriodIndex = reader.GetOrdinal("Hyrtid");
+                        int quantityIndex = reader.GetOrdinal("Antal");
 
                         //hämtar varje tabellrad för sig
                         while (reader.Read())
                         {
                             //hämtar och lägger till filmen i return-listan.
                             Movie movie = new Movie();
-                            movie.FilmID = reader.GetInt32(filmIDIndex);
-                            movie.Titel = reader.GetString(titelIndex);
-                            movie.År = reader.GetInt32(årIndex);
+                            movie.MovieID = reader.GetInt32(movieIDIndex);
+                            movie.Title = reader.GetString(titleIndex);
+                            movie.Year = reader.GetInt32(yearIndex);
                             movie.Genre = reader.GetString(genreIndex);
-                            movie.PrisgruppID = reader.GetInt32(prisgruppIDIndex);
-                            movie.Hyrtid = reader.GetInt32(hyrtidIndex);
-                            movie.Antal = reader.GetInt32(antalIndex);
+                            movie.PriceGroupID = reader.GetInt32(priceGroupIDIndex);
+                            movie.RentalPeriod = reader.GetInt32(rentalPeriodIndex);
+                            movie.Quantity = reader.GetInt32(quantityIndex);
 
                             movies.Add(movie);
                         }
                     }
                 }
+
+                //tar bort ev. tomma poster från listan
+                movies.TrimExcess();
                 return movies.AsEnumerable();
             }
 
             catch
             {
-                throw new ApplicationException("Ett fel uppstod när filmerna skulle hämtas");
+                throw new ApplicationException("An error occurred when accessing the database.");
             }
         }
 
         //Hämta en film med specificerat ID
-        public Movie getFilmByID(int FilmID)
+        public Movie getMovieByID(int movieID)
         {
             try
             {
@@ -75,49 +78,44 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getFilmByID = new SqlCommand("getFilmByID", conn);
-                    getFilmByID.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getMovieByID = new SqlCommand("appSchema.getFilmByID", conn);
+                    getMovieByID.CommandType = CommandType.StoredProcedure;
 
-                    getFilmByID.Parameters.Add("FilmID", SqlDbType.Int, 4).Value = FilmID;
+                    getMovieByID.Parameters.Add("@FilmID", SqlDbType.Int, 4).Value = movieID;
 
                     //anslutningen öppnas
                     conn.Open();
 
-                    using(SqlDataReader reader = getFilmByID.ExecuteReader())
+                    using (SqlDataReader reader = getMovieByID.ExecuteReader())
                     {
                         //hämta alla index i tabeller
-                        int filmIDIndex = reader.GetOrdinal("FilmID");
-                        int titelIndex = reader.GetOrdinal("Titel");
-                        int årIndex = reader.GetOrdinal("År");
+                        int movieIDIndex = reader.GetOrdinal("FilmID");
+                        int titleIndex = reader.GetOrdinal("Titel");
+                        int yearIndex = reader.GetOrdinal("År");
                         int genreIndex = reader.GetOrdinal("Genre");
-                        int prisgruppIDIndex = reader.GetOrdinal("Prisgrupp");
-                        int hyrtidIndex = reader.GetOrdinal("Hyrtid");
-                        int antalIndex = reader.GetOrdinal("Antal");
+                        int priceGroupIDIndex = reader.GetOrdinal("Prisgrupp");
+                        int rentalPeriodIndex = reader.GetOrdinal("Hyrtid");
+                        int quantityIndex = reader.GetOrdinal("Antal");
 
                         if(reader.Read())
                         {
-                            movie.FilmID = reader.GetInt32(filmIDIndex);
-                            movie.Titel = reader.GetString(titelIndex);
-                            movie.År = reader.GetInt32(årIndex);
+                            movie.MovieID = reader.GetInt32(movieIDIndex);
+                            movie.Title = reader.GetString(titleIndex);
+                            movie.Year = reader.GetInt32(yearIndex);
                             movie.Genre = reader.GetString(genreIndex);
-                            movie.PrisgruppID = reader.GetInt32(prisgruppIDIndex);
-                            movie.Hyrtid = reader.GetInt32(hyrtidIndex);
-                            movie.Antal = reader.GetInt32(antalIndex);
+                            movie.PriceGroupID = reader.GetInt32(priceGroupIDIndex);
+                            movie.RentalPeriod = reader.GetInt32(rentalPeriodIndex);
+                            movie.Quantity = reader.GetInt32(quantityIndex);
 
-                            return movie;
                         }
                     }
-
                 }
-
                 return movie;
             }
             catch
             {
-                throw new ApplicationException("Något gick fel när filmen skulle hämtas");
+                throw new ApplicationException("An error occurred when accessing the database.");
             }
         }
-
-
     }
 }
