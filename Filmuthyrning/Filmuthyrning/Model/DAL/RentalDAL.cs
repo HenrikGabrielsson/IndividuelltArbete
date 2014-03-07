@@ -106,5 +106,101 @@ namespace Filmuthyrning.Model.DAL
                 throw new ApplicationException("Något gick fel när filmen skulle hämtas");
             }
         }
+
+
+        //funktion som lägger till en ny uthyrning 
+        public int NewRental(Rental newRental)
+        {
+            try
+            {
+                //Anslutningen som används för att kommunicera med databasen
+                using (SqlConnection conn = CreateConnection())
+                {
+                    SqlCommand newRentalCmd = new SqlCommand("appSchema.newUthyrning", conn);
+                    newRentalCmd.CommandType = CommandType.StoredProcedure;
+
+                    //Parametrar som måste fyllas i
+                    newRentalCmd.Parameters.Add("@FilmID", SqlDbType.Int, 4).Value = newRental.MovieID;
+                    newRentalCmd.Parameters.Add("@KundID", SqlDbType.Int, 4).Value = newRental.CustomerID;
+                    newRentalCmd.Parameters.Add("@HyrDatum", SqlDbType.SmallDateTime, 4).Value = newRental.RentalDate;
+
+                    //en out-parameter med uthyrningens id som den får när den skapas
+                    newRentalCmd.Parameters.Add("@UthyrningID", SqlDbType.Int, 4).Direction = ParameterDirection.Output;
+
+                    //Öppnar anslutningen
+                    conn.Open();
+
+                    //Den lagrade proceduren anropas och lägger till den nya uthyrningen i databasen
+                    newRentalCmd.ExecuteNonQuery();
+
+                    //Den nya uthyrningens id hämtas och returneras.
+                    newRental.CustomerID = (int)newRentalCmd.Parameters["@UthyrningID"].Value;
+
+                    //returnerar det nya id:t. Är 0 Ifall uthyrningen inte lades till
+                    return newRental.RentalID;
+                }
+            }
+            catch
+            {
+                throw new ApplicationException("An error occurred when accessing the database.");
+            }
+        }
+
+        //funktion som uppdaterar en befintlig uthyrning
+        public int UpdateRental(Rental updRental)
+        {
+            try
+            {
+                //anslutningen som används för att kommunicera med databasen.
+                using(SqlConnection conn = CreateConnection())
+                {
+                    //Den lagrade proceduren som ska användas
+                    SqlCommand updateRentalCmd = new SqlCommand("appSchema.updateUthyrning", conn);
+                    updateRentalCmd.CommandType = CommandType.StoredProcedure;
+
+                    //parametrar till proceduren
+                    updateRentalCmd.Parameters.Add("@UthyrningID", SqlDbType.Int, 4).Value = updRental.RentalID;
+                    updateRentalCmd.Parameters.Add("@FilmID", SqlDbType.Int, 4).Value = updRental.MovieID;
+                    updateRentalCmd.Parameters.Add("@KundID", SqlDbType.Int, 4).Value = updRental.CustomerID;
+                    updateRentalCmd.Parameters.Add("@HyrDatum", SqlDbType.SmallDateTime, 4).Value = updRental.RentalDate;                 
+
+                    conn.Open();
+
+                    //kör proceduren och returnerar antalet ändrade rader
+                    return updateRentalCmd.ExecuteNonQuery();
+                }
+
+            }
+            catch
+            {
+                throw new ApplicationException("An error occurred when accessing the database.");
+            }
+        }
+
+        //funktion som tar bort en uthyrning med medskickat id
+        public int DeleteRental(int delRentalID)
+        {
+            try
+            {
+                using (SqlConnection conn = CreateConnection())
+                {
+                    //den lagrade proceduren som ska användas
+                    SqlCommand deleteRentalCmd = new SqlCommand("appSchema.deleteUthyrning", conn);
+                    deleteRentalCmd.CommandType = CommandType.StoredProcedure;
+
+                    //UthyrningID till uthyrningen som ska raderas skickas som parameter
+                    deleteRentalCmd.Parameters.Add("@UthyrningID", SqlDbType.Int, 4).Value = delRentalID;
+
+                    conn.Open();
+
+                    //Kör proceduren som tar bort uthyrningen och returnerar antalet ändrade rader.
+                    return deleteRentalCmd.ExecuteNonQuery();
+                }
+            }
+            catch
+            {
+                throw new ApplicationException("An error occurred when accessing the database.");
+            }
+        }
     }
 }
