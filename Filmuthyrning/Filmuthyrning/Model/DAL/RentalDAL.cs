@@ -62,7 +62,7 @@ namespace Filmuthyrning.Model.DAL
         }
 
         //Hämta en uthyrning med specificerat ID
-        public Rental getRentalsByID(int rentalID)
+        public Rental getRentalByID(int rentalID)
         {
             try
             {
@@ -103,10 +103,71 @@ namespace Filmuthyrning.Model.DAL
             }
             catch
             {
-                throw new ApplicationException("Något gick fel när filmen skulle hämtas");
+                throw new ApplicationException("An error occurred when accessing the database.");
             }
         }
 
+        public IEnumerable<Rental> GetRentalsPagewise(int maxRows, int startIndex, out int totalRowCount)
+        {
+
+            try
+            {
+
+                //här ska uthyrningarna som kommer tillbaka sparas
+                List<Rental> rentals = new List<Rental>(maxRows);
+
+                //anslutningen skapas
+                using(SqlConnection conn = CreateConnection())
+                {
+                    //den lagrade proceduren som ska användas.
+                    SqlCommand getRentalsPagewiseCmd = new SqlCommand("appSchema.getUthyrningarPagewise", conn);
+                    getRentalsPagewiseCmd.CommandType = CommandType.StoredProcedure;
+
+                    //Skickar med alla parametrar
+                    getRentalsPagewiseCmd.Parameters.Add("@MaxAntal", SqlDbType.Int, 4).Value = maxRows;
+                    getRentalsPagewiseCmd.Parameters.Add("@StartIndex", SqlDbType.Int, 4).Value = startIndex;
+
+                    //en outparameter
+                    getRentalsPagewiseCmd.Parameters.Add("@totalRowCount", SqlDbType.Int, 4).Direction = ParameterDirection.Output;
+
+                    conn.Open();
+
+                    //Läser ut raderna från tabellen en efter en.
+                    using (SqlDataReader reader = getRentalsPagewiseCmd.ExecuteReader())
+                    {
+                        int rentalIDIndex = reader.GetOrdinal("UthyrningID");
+                        int movieIDIndex = reader.GetOrdinal("FilmID");
+                        int customerIDIndex = reader.GetOrdinal("KundID");
+                        int rentalDateindex = reader.GetOrdinal("HyrDatum");
+
+                        //medan det fortfarande finns rader som kan läsas...
+                        while(reader.Read())
+                        {
+                            //skapar ett nytt uthyrningsobjekt och lägger till det i listan som returneras.
+                            Rental rental = new Rental();
+                            rental.RentalID = reader.GetInt32(rentalIDIndex);
+                            rental.MovieID = reader.GetInt32(movieIDIndex);
+                            rental.CustomerID = reader.GetInt32(customerIDIndex);
+                            rental.RentalDate = reader.GetString(rentalDateindex);
+
+                            rentals.Add(rental);
+                            
+                        }
+
+                        //out-parametern ges antalet rader totalt i tabellen och listan returneras.
+                        totalRowCount = (int)getRentalsPagewiseCmd.Parameters["@totalRowCount"].Value;
+                        rentals.TrimExcess();
+                        return rentals.AsEnumerable();
+                    }
+                }
+
+            }
+            catch
+            {
+                throw new ApplicationException("An error occurred when accessing the database.");
+            }
+            throw new NotImplementedException();
+        }
 
         //funktion som lägger till en ny uthyrning 
         public int NewRental(Rental newRental)
