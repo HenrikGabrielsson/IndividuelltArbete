@@ -23,10 +23,13 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getMovies = new SqlCommand("appSchema.getFilmer", conn);
-                    getMovies.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getMoviesCmd = new SqlCommand("appSchema.usp_getFilmer", conn);
+                    getMoviesCmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlDataReader reader = new SqlDataReader())
+                    //anslutningen öppnas
+                    conn.Open();
+
+                    using (SqlDataReader reader = getMoviesCmd.ExecuteReader())
                     {
 
                         //hämta alla index i tabeller
@@ -34,7 +37,7 @@ namespace Filmuthyrning.Model.DAL
                         int titleIndex = reader.GetOrdinal("Titel");
                         int yearIndex = reader.GetOrdinal("År");
                         int genreIndex = reader.GetOrdinal("Genre");
-                        int priceGroupIDIndex = reader.GetOrdinal("Prisgrupp");
+                        int priceGroupIDIndex = reader.GetOrdinal("PrisgruppID");
                         int rentalPeriodIndex = reader.GetOrdinal("Hyrtid");
                         int quantityIndex = reader.GetOrdinal("Antal");
 
@@ -45,11 +48,11 @@ namespace Filmuthyrning.Model.DAL
                             Movie movie = new Movie();
                             movie.MovieID = reader.GetInt32(movieIDIndex);
                             movie.Title = reader.GetString(titleIndex);
-                            movie.Year = reader.GetInt32(yearIndex);
+                            movie.Year = reader.GetInt16(yearIndex);
                             movie.Genre = reader.GetString(genreIndex);
-                            movie.PriceGroupID = reader.GetInt32(priceGroupIDIndex);
-                            movie.RentalPeriod = reader.GetInt32(rentalPeriodIndex);
-                            movie.Quantity = reader.GetInt32(quantityIndex);
+                            movie.PriceGroupID = reader.GetByte(priceGroupIDIndex);
+                            movie.RentalPeriod = reader.GetByte(rentalPeriodIndex);
+                            movie.Quantity = reader.GetByte(quantityIndex);
 
                             movies.Add(movie);
                         }
@@ -78,15 +81,15 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getMovieByID = new SqlCommand("appSchema.getFilmByID", conn);
-                    getMovieByID.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getMovieByIDCmd = new SqlCommand("appSchema.usp_getFilmByID", conn);
+                    getMovieByIDCmd.CommandType = CommandType.StoredProcedure;
 
-                    getMovieByID.Parameters.Add("@FilmID", SqlDbType.Int, 4).Value = movieID;
+                    getMovieByIDCmd.Parameters.Add("@FilmID", SqlDbType.Int, 4).Value = movieID;
 
                     //anslutningen öppnas
                     conn.Open();
 
-                    using (SqlDataReader reader = getMovieByID.ExecuteReader())
+                    using (SqlDataReader reader = getMovieByIDCmd.ExecuteReader())
                     {
                         //hämta alla index i tabeller
                         int movieIDIndex = reader.GetOrdinal("FilmID");
@@ -103,10 +106,9 @@ namespace Filmuthyrning.Model.DAL
                             movie.Title = reader.GetString(titleIndex);
                             movie.Year = reader.GetInt32(yearIndex);
                             movie.Genre = reader.GetString(genreIndex);
-                            movie.PriceGroupID = reader.GetInt32(priceGroupIDIndex);
-                            movie.RentalPeriod = reader.GetInt32(rentalPeriodIndex);
+                            movie.PriceGroupID = reader.GetByte(priceGroupIDIndex);
+                            movie.RentalPeriod = reader.GetByte(rentalPeriodIndex);
                             movie.Quantity = reader.GetInt32(quantityIndex);
-
                         }
                     }
                 }

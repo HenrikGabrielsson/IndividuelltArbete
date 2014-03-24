@@ -57,6 +57,8 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Pages\Shared\RentMaster.Master" />
+    <None Include="Properties\PublishProfiles\MyProfile.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -65,14 +67,82 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Web.config" />
+    <Content Include="Global.asax" />
+    <Content Include="Pages\CustomerPages\CustomerList.aspx" />
+    <Content Include="Pages\CustomerPages\CustomerSave.aspx" />
+    <Content Include="Pages\MoviePages\MovieList.aspx" />
+    <Content Include="Pages\RentalPages\RentalList.aspx" />
+    <Content Include="Pages\RentalPages\RentalSave.aspx" />
+    <Content Include="Pages\Shared\error.aspx" />
+    <Content Include="Script\RentScript.js" />
+    <Content Include="style\rentStyle.css" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
     <Compile Include="Model\BLL\Customer.cs" />
     <Compile Include="Model\BLL\Movie.cs" />
     <Compile Include="Model\BLL\Rental.cs" />
+    <Compile Include="Model\BLL\Service.cs" />
+    <Compile Include="Model\BLL\Validation.cs" />
+    <Compile Include="Model\DAL\CustomerDAL.cs" />
     <Compile Include="Model\DAL\DALBase.cs" />
     <Compile Include="Model\DAL\MovieDAL.cs" />
+    <Compile Include="Model\DAL\RentalDAL.cs" />
+    <Compile Include="Pages\CustomerPages\CustomerList.aspx.cs">
+      <DependentUpon>CustomerList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\CustomerPages\CustomerList.aspx.designer.cs">
+      <DependentUpon>CustomerList.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\CustomerPages\CustomerSave.aspx.cs">
+      <DependentUpon>CustomerSave.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\CustomerPages\CustomerSave.aspx.designer.cs">
+      <DependentUpon>CustomerSave.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\MoviePages\MovieList.aspx.cs">
+      <DependentUpon>MovieList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\MoviePages\MovieList.aspx.designer.cs">
+      <DependentUpon>MovieList.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\RentalPages\RentalList.aspx.cs">
+      <DependentUpon>RentalList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\RentalPages\RentalList.aspx.designer.cs">
+      <DependentUpon>RentalList.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\RentalPages\RentalSave.aspx.cs">
+      <DependentUpon>RentalSave.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\RentalPages\RentalSave.aspx.designer.cs">
+      <DependentUpon>RentalSave.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Shared\error.aspx.cs">
+      <DependentUpon>error.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Shared\error.aspx.designer.cs">
+      <DependentUpon>error.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Shared\RentMaster.Master.cs">
+      <DependentUpon>RentMaster.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Shared\RentMaster.Master.designer.cs">
+      <DependentUpon>RentMaster.Master</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

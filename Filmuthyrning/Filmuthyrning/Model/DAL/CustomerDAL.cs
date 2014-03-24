@@ -23,10 +23,12 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getCustomers = new SqlCommand("appSchema.getKunder", conn);
-                    getCustomers.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getCustomersCmd = new SqlCommand("appSchema.usp_getKunder", conn);
+                    getCustomersCmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlDataReader reader = new SqlDataReader())
+                    conn.Open();
+
+                    using (SqlDataReader reader = getCustomersCmd.ExecuteReader())
                     {
 
                         //hämta alla index i tabeller
@@ -35,7 +37,6 @@ namespace Filmuthyrning.Model.DAL
                         int fNameIndex = reader.GetOrdinal("Förnamn");
                         int lNameIndex = reader.GetOrdinal("Efternamn");
                         int phoneNumberIndex = reader.GetOrdinal("Telefon");
-                        int emailIndex = reader.GetOrdinal("Email");
 
                         //hämtar varje tabellrad för sig
                         while (reader.Read())
@@ -43,11 +44,11 @@ namespace Filmuthyrning.Model.DAL
                             //hämtar och lägger till kunden i return-listan.
                             Customer customer = new Customer();
                             customer.CustomerID = reader.GetInt32(customerIDIndex);
-                            customer.CustomerTypeID = reader.GetInt32(customerTypeIDindex);
+                            customer.CustomerTypeID = reader.GetByte(customerTypeIDindex);
                             customer.FirstName = reader.GetString(fNameIndex);
                             customer.LastName = reader.GetString(lNameIndex);
                             customer.PhoneNumber = reader.GetString(phoneNumberIndex);
-                            customer.Email = reader.GetString(emailIndex);
+
 
                             customers.Add(customer);
                         }
@@ -58,7 +59,6 @@ namespace Filmuthyrning.Model.DAL
                 customers.TrimExcess();
                 return customers.AsEnumerable();
             }
-
             catch
             {
                 throw new ApplicationException("An error occurred when accessing the database.");
@@ -76,15 +76,15 @@ namespace Filmuthyrning.Model.DAL
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand getCustomerByID = new SqlCommand("appSchema.getKundByID", conn);
-                    getCustomerByID.CommandType = CommandType.StoredProcedure;
+                    SqlCommand getCustomerByIDCmd = new SqlCommand("appSchema.usp_getKundByID", conn);
+                    getCustomerByIDCmd.CommandType = CommandType.StoredProcedure;
 
-                    getCustomerByID.Parameters.Add("@CustomerID", SqlDbType.Int, 4).Value = customerID;
+                    getCustomerByIDCmd.Parameters.Add("@KundID", SqlDbType.Int, 4).Value = customerID;
 
                     //anslutningen öppnas
                     conn.Open();
 
-                    using (SqlDataReader reader = getCustomerByID.ExecuteReader())
+                    using (SqlDataReader reader = getCustomerByIDCmd.ExecuteReader())
                     {
                         //hämta alla index i tabeller
                         int customerIDIndex = reader.GetOrdinal("KundID");
@@ -92,16 +92,15 @@ namespace Filmuthyrning.Model.DAL
                         int fNameIndex = reader.GetOrdinal("Förnamn");
                         int lNameIndex = reader.GetOrdinal("Efternamn");
                         int phoneNumberIndex = reader.GetOrdinal("Telefon");
-                        int emailIndex = reader.GetOrdinal("Email");
 
+                        //hämtar tabellraden med samma ID som argumentet till funktionen 
                         if (reader.Read())
                         {
                             customer.CustomerID = reader.GetInt32(customerIDIndex);
-                            customer.CustomerTypeID = reader.GetInt32(customerTypeIDindex);
+                            customer.CustomerTypeID = reader.GetByte(customerTypeIDindex);
                             customer.FirstName = reader.GetString(fNameIndex);
                             customer.LastName = reader.GetString(lNameIndex);
                             customer.PhoneNumber = reader.GetString(phoneNumberIndex);
-                            customer.Email = reader.GetString(emailIndex);
 
                             return customer;
                         }
@@ -117,14 +116,14 @@ namespace Filmuthyrning.Model.DAL
         }
 
         //funktion som lägger till en ny kund 
-        public int NewCustomer(Customer newCustomer)
+        public void NewCustomer(Customer newCustomer)
         {
             try
             {
                 //Anslutningen som används för att kommunicera med databasen
                 using (SqlConnection conn = CreateConnection())
                 {
-                    SqlCommand newCustomerCmd = new SqlCommand("appSchema.newKund", conn);
+                    SqlCommand newCustomerCmd = new SqlCommand("appSchema.usp_newKund", conn);
                     newCustomerCmd.CommandType = CommandType.StoredProcedure;
 
                     //Parametrar som måste fyllas i
@@ -141,12 +140,13 @@ namespace Filmuthyrning.Model.DAL
                     //Den lagrade proceduren anropas och lägger till den nya kunden i databasen
                     newCustomerCmd.ExecuteNonQuery();
 
-                    //Den nya kundens id hämtas och returneras.
-                    newCustomer.CustomerID = (int)newCustomerCmd.Parameters["@KundID"].Value;
+                    //Den nya kundens id hämtas och kontrolleras så att det inte är 0, för då har nåt gått fel..
+                    int newCustomerID = (int)newCustomerCmd.Parameters["@KundID"].Value;
 
-                    //returnerar det nya id:t. Är 0 Ifall kunden inte lades till
-                    return newCustomer.CustomerID;
-
+                    if (newCustomerID == 0)
+                    {
+                        throw new ApplicationException("An error occurred when accessing the database.");
+                    }
                 }
             }
             catch
@@ -156,7 +156,7 @@ namespace Filmuthyrning.Model.DAL
         }
 
         //funktion som uppdaterar en befintlig kund
-        public int UpdateCustomer(Customer updCustomer)
+        public void UpdateCustomer(Customer updCustomer)
         {
             try
             {
@@ -164,22 +164,21 @@ namespace Filmuthyrning.Model.DAL
                 using(SqlConnection conn = CreateConnection())
                 {
                     //Den lagrade proceduren som ska användas
-                    SqlCommand updateCustomerCmd = new SqlCommand("appSchema.updateKund", conn);
+                    SqlCommand updateCustomerCmd = new SqlCommand("appSchema.usp_updateKund", conn);
                     updateCustomerCmd.CommandType = CommandType.StoredProcedure;
 
                     //parametrar till proceduren
-                    updateCustomerCmd.Parameters.Add("@KundID", SqlDbType.Int, 4).Value = updCustomer.FirstName;
+                    updateCustomerCmd.Parameters.Add("@KundID", SqlDbType.Int, 4).Value = updCustomer.CustomerID;
                     updateCustomerCmd.Parameters.Add("@FNamn", SqlDbType.VarChar, 50).Value = updCustomer.FirstName;
                     updateCustomerCmd.Parameters.Add("@ENamn", SqlDbType.VarChar, 50).Value = updCustomer.LastName;
-                    updateCustomerCmd.Parameters.Add("@Telefon", SqlDbType.VarChar, 10).Value = updCustomer.PhoneNumber;
-                    updateCustomerCmd.Parameters.Add("@Email", SqlDbType.VarChar, 50).Value = updCustomer.Email;                    
+                    updateCustomerCmd.Parameters.Add("@Telefon", SqlDbType.VarChar, 10).Value = updCustomer.PhoneNumber;                  
 
                     conn.Open();
 
-                    //kör proceduren och returnerar antalet ändrade rader
-                    return updateCustomerCmd.ExecuteNonQuery();
+                    //kör proceduren
+                    updateCustomerCmd.ExecuteNonQuery();
+                   
                 }
-
             }
             catch
             {
@@ -188,14 +187,14 @@ namespace Filmuthyrning.Model.DAL
         }
 
         //funktion som tar bort en kund med medskickat id
-        public int DeleteCustomer(int delCustomerID)
+        public void DeleteCustomer(int delCustomerID)
         {
             try
             {
                 using (SqlConnection conn = CreateConnection())
                 {
                     //den lagrade proceduren som ska användas
-                    SqlCommand deleteCustomerCmd = new SqlCommand("appSchema.deleteKund", conn);
+                    SqlCommand deleteCustomerCmd = new SqlCommand("appSchema.usp_deleteKund", conn);
                     deleteCustomerCmd.CommandType = CommandType.StoredProcedure;
 
                     //kundID till kunden som ska raderas skickas som parameter
@@ -203,8 +202,8 @@ namespace Filmuthyrning.Model.DAL
 
                     conn.Open();
 
-                    //Kör proceduren som tar bort kunden och returnerar antalet ändrade rader.
-                    return deleteCustomerCmd.ExecuteNonQuery();
+                    //Kör proceduren
+                    deleteCustomerCmd.ExecuteNonQuery();
                 }
             }
             catch
